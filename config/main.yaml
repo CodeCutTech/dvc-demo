@@ -1,0 +1,19 @@
+defaults:
+  - process: process_1
+  - _self_
+
+raw_data:
+  path: data/raw/marketing_campaign.csv
+
+intermediate:
+  dir: data/intermediate
+  name: scale_features.csv
+  path: ${intermediate.dir}/${intermediate.name}
+
+final:
+  dir: data/final
+  name: segmented.csv
+  path: ${final.dir}/${final.name}
+
+model:
+  path: model/cluster.pkl

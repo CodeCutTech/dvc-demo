@@ -1,0 +1,88 @@
+schema: '2.0'
+stages:
+  process_data:
+    cmd: python src/process_data.py
+    deps:
+    - path: data/raw
+      md5: 10c3f643286f509fa7f6b4675d9efbad.dir
+      size: 222379
+      nfiles: 1
+    - path: src/process_data.py
+      hash: md5
+      md5: 5920b8b9838a6fdb8afdda6c82e35986
+      size: 2654
+    params:
+      config/process/process_1.yaml:
+        family_size:
+          Married: 2
+          Together: 2
+          Absurd: 1
+          Widow: 1
+          YOLO: 1
+          Divorced: 1
+          Single: 1
+          Alone: 1
+        keep_columns:
+        - Income
+        - Recency
+        - NumWebVisitsMonth
+        - AcceptedCmp3
+        - AcceptedCmp4
+        - AcceptedCmp5
+        - AcceptedCmp1
+        - AcceptedCmp2
+        - Complain
+        - Response
+        - age
+        - total_purchases
+        - enrollment_years
+        - family_size
+        name: process_1
+        remove_outliers_threshold:
+          age: 84
+          Income: 600000
+    outs:
+    - path: data/intermediate
+      hash: md5
+      md5: 69c6a4e21a7e575450a4ce26f70f394f.dir
+      size: 624234
+      nfiles: 1
+  train:
+    cmd: python src/segment.py
+    deps:
+    - path: data/intermediate
+      hash: md5
+      md5: 69c6a4e21a7e575450a4ce26f70f394f.dir
+      size: 624234
+      nfiles: 1
+    - path: src/segment.py
+      hash: md5
+      md5: b0f72dee173f4a36c4e9849fa3b0545c
+      size: 2245
+    params:
+      config/main.yaml:
+        defaults:
+        - process: process_1
+        - _self_
+        final:
+          dir: data/final
+          name: segmented.csv
+          path: ${final.dir}/${final.name}
+        intermediate:
+          dir: data/intermediate
+          name: scale_features.csv
+          path: ${intermediate.dir}/${intermediate.name}
+        model:
+          path: model/cluster.pkl
+        raw_data:
+          path: data/raw/marketing_campaign.csv
+    outs:
+    - path: data/final
+      hash: md5
+      md5: fcdc1dd0b9a2a1877736c356b9602f6a.dir
+      size: 610251
+      nfiles: 1
+    - path: model/cluster.pkl
+      hash: md5
+      md5: 8fd544c7627269bc5cbee2243e6cee58
+      size: 9701
