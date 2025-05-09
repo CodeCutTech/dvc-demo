@@ -10,6 +10,9 @@ from sklearn.decomposition import PCA
 from yellowbrick.cluster import KElbowVisualizer
 import hydra
 from pathlib import Path
+import mlflow
+from sklearn.metrics import silhouette_score
+from mlflow.models import infer_signature
 
 warnings.simplefilter(action="ignore", category=DeprecationWarning)
 
@@ -65,6 +68,8 @@ def save_data_and_model(data: pd.DataFrame, model: KMeans, config: DictConfig):
 
 @hydra.main(config_path="../config", config_name="main", version_base="1.2")
 def segment(config: DictConfig) -> None:
+
+    # Data processing
     data = read_process_data(config)
     pca = get_pca_model(data)
     pca_df = reduce_dimension(data, pca)
@@ -72,7 +77,20 @@ def segment(config: DictConfig) -> None:
     model = get_clusters_model(pca_df, k_best)
     pred = predict(model, pca_df)
     data = insert_clusters_to_df(data, pred)
+    silhouette_avg = silhouette_score(pca_df, pred)
+
+    # Save data and model locally
     save_data_and_model(data, model, config)
+
+    with mlflow.start_run():
+
+        mlflow.log_params({"n_components": 3, "random_state": 42, "best_k": k_best})
+        mlflow.log_metric("silhouette_score", silhouette_avg)
+        signature = infer_signature(pca_df, pred)
+        mlflow.sklearn.log_model(
+            model, "kmeans_model", signature=signature, input_example=pca_df.head()
+        )
+        mlflow.log_artifact(config.final.path, "processed_data")
 
 
 if __name__ == "__main__":
