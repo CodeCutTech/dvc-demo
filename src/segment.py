@@ -22,18 +22,20 @@ def read_process_data(config: DictConfig):
 
 
 def get_pca_model(data: pd.DataFrame) -> PCA:
-    pca = PCA(n_components=3)
+    pca = PCA(n_components=4)
     pca.fit(data)
     return pca
 
 
 def reduce_dimension(df: pd.DataFrame, pca: PCA) -> pd.DataFrame:
-    return pd.DataFrame(pca.transform(df), columns=["col1", "col2", "col3"])
+    n_components = pca.n_components_
+    columns = [f"col{i+1}" for i in range(n_components)]
+    return pd.DataFrame(pca.transform(df), columns=columns)
 
 
-def get_3d_projection(pca_df: pd.DataFrame) -> dict:
-    """A 3D Projection Of Data In The Reduced Dimensionality Space"""
-    return {"x": pca_df["col1"], "y": pca_df["col2"], "z": pca_df["col3"]}
+def get_projection(pca_df: pd.DataFrame) -> dict:
+    """Get projection of data in the reduced dimensionality space"""
+    return {f"dim{i+1}": pca_df[col] for i, col in enumerate(pca_df.columns)}
 
 
 def get_best_k_cluster(pca_df: pd.DataFrame) -> pd.DataFrame:
