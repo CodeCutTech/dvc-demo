@@ -4,7 +4,8 @@ stages:
     deps:
     - data/raw
     - src/process_data.py
-    - config
+    - config/main.yaml
+    - config/process
     outs:
     - data/intermediate
   train:
@@ -12,7 +13,7 @@ stages:
     deps:
     - data/intermediate
     - src/segment.py
-    - config
+    - config/main.yaml
     outs:
     - data/final
     - model/cluster.pkl
